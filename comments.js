@@ -1,16 +1,64 @@
 // Create Web Server
 const express = require('express');
 const app = express();
-const port = 3000;
+const bodyParser = require('body-parser');
+const comments = require('./comments');
 
-// Create a route
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// POST /comments
+app.post('/comments', (req, res) => {
+    const { content } = req.body;
+    if (!content) {
+        return res.status(400).json({ message: 'content is required' });
+    }
+
+    const newComment = comments.create(content);
+    res.status(201).json(newComment);
+});
+
+// GET /comments
 app.get('/comments', (req, res) => {
-    res.send('Comments');
+    const allComments = comments.getAll();
+    res.json(allComments);
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+// GET /comments/:id
+app.get('/comments/:id', (req, res) => {
+    const { id } = req.params;
+    const theComment = comments.getOne(id);
+    if (!theComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    res.json(theComment);
 });
 
-// In comments.js, we have created a simple web server that listens on port 3000. When a request is made to http://localhost:3000/comments, the server responds with the text "Comments". This is a simple example of how to create a route in Express and send a response back to the client.
+// PUT /comments/:id
+app.put('/comments/:id', (req, res) => {
+    const { id } = req.params;
+    const { content } = req.body;
+    const updatedComment = comments.update(id, content);
+    if (!updatedComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    res.json(updatedComment);
+});
+
+// DELETE /comments/:id
+app.delete('/comments/:id', (req, res) => {
+    const { id } = req.params;
+    const deletedComment = comments.remove(id);
+    if (!deletedComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    res.json(deletedComment);
+});
+
+// Start Web Server
+app.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
+});
