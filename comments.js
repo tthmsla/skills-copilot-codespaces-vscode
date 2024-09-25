@@ -1,26 +1,19 @@
 // create web server
-// create a route that will accept a POST request to /comments
-// when a POST request is made to /comments, the server should add the data from the request body to the comments array
-// the server should send a response with a status of 201 and the updated comments array
+var http = require('http');
+var url = require('url');
+var fs = require('fs');
 
-// create a web server
-const express = require("express");
-const app = express();
-// require the comments array
-const { comments } = require("./data");
-
-// parse incoming JSON data
-app.use(express.json());
-
-// create a route that will accept a POST request to /comments
-app.post("/comments", (req, res) => {
-  // add the data from the request body to the comments array
-  comments.push(req.body);
-  // send a response with a status of 201 and the updated comments array
-  res.status(201).json(comments);
-});
-
-// listen on port 4001
-app.listen(4001, () => {
-  console.log("Server is listening on port 4001");
-});
+// create server
+http.createServer(function (req, res) {
+    var q = url.parse(req.url, true);
+    var filename = "." + q.pathname;
+    fs.readFile(filename, function(err, data) {
+        if (err) {
+            res.writeHead(404, {'Content-Type': 'text/html'});
+            return res.end("404 Not Found");
+        }
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write(data);
+        return res.end();
+    });
+}).listen(8080);
